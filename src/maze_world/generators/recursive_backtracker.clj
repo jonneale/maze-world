@@ -21,7 +21,7 @@
   [position grid direction]
   (-> grid
       (update-in [position] #(conj % direction))
-      (update-in (core/apply-direction position direction) #(conj % (core/opposite-direction direction)))))
+      (update-in [(core/apply-direction position direction)] #(conj % (core/opposite-direction direction)))))
 
 (defn carve-passages-from
   ([grid]

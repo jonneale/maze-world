@@ -11,7 +11,6 @@
 (def opposite-direction
   {:N :S :E :W :S :N :W :E})
 
-
 (defn apply-direction
   [[x y] direction]
   (let [[dx dy] (deltas direction)]

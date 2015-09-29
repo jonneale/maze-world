@@ -1,4 +1,5 @@
-(ns maze-world.printing)
+(ns maze-world.printing
+  (:require [maze-world.config :refer [width height]]))
 
 (def mask
   {:N 1
