@@ -5,8 +5,6 @@
   (:require [quil.core :as q]
             [maze-world.config :as maze-config]))
 
-(def canvas-size 500)
-
 ;; original point 0,0
 ;; no north - draw line from 0 0 to 1 0
 
@@ -18,41 +16,60 @@
    :S [[0 1] [1 1]]
    :W [[0 0] [0 1]]})
 
+(defn maze-width
+  [maze]
+  (inc (reduce max (map first (keys maze)))))
+
+(defn maze-height
+  [maze]
+  (inc (reduce max (map last (keys maze)))))
 
 (defn draw-line
-  [width height [x y] [[ox oy] [dx dy]] graphics]
-  (let  [scale 20
-         x' (+ (* x scale) (* ox scale))
-         y' (+ (* y scale) (* oy scale))
-         nx (+ (* x scale) (* dx scale))
-         ny (+ (* y scale) (* dy scale))]
+  [width height w-scale h-scale [x y] [[ox oy] [dx dy]] graphics]
+  (let  [x' (+ (* x w-scale) (* ox w-scale))
+         y' (+ (* y h-scale) (* oy h-scale))
+         nx (+ (* x w-scale) (* dx w-scale))
+         ny (+ (* y h-scale) (* dy h-scale))]
     (.drawLine graphics x' y' nx ny)
     [[x' y' nx ny]]))
 
 (defn draw-squares
-  [width height maze graphics]
-  ;; always assume a 2x2 grid for starters
-  (doseq [[[x y] moveable-directions] maze]
-    ;; given these directions :N :E
-    ;; draw these lines :S :W
-    (doseq [direction (clojure.set/difference (-> directions keys set)
-                                            (set moveable-directions))]
-      (draw-line width height [x y] (directions direction) graphics))))
+  [image-width image-height maze graphics]
+  (let [w-scale (int (/
+                      ;;add a 1% buffer around the edge of the image
+                      (- image-width (/ image-width 100.0))
+                      (maze-width maze)))
+        h-scale (int
+                 (/
+                  (- image-height (/ image-height 100.0))
+                  (maze-height maze)))]
+    (doseq [[[x y] moveable-directions] maze]
+      ;; given these directions :N :E
+      ;; draw these lines :S :W
+      (doseq [direction (clojure.set/difference (-> directions keys set)
+                                                (set moveable-directions))]
+        (draw-line image-width
+                   image-height
+                   w-scale
+                   h-scale
+                   [x y]
+                   (directions direction)
+                   graphics)))))
 
 (defn draw-maze
-  [width height maze]
-  (let [image  (BufferedImage. width height BufferedImage/TYPE_INT_RGB)
+  [image-width image-height maze]
+  (let [image  (BufferedImage. image-width image-height BufferedImage/TYPE_INT_RGB)
         canvas (proxy [JLabel] []
                  (paint [g]
                    (.drawImage g image 0 0 this)))
         graphics (.createGraphics image)]
 
     (.setColor graphics Color/green)
-    (draw-squares width height maze graphics)
+    (draw-squares image-width image-height maze graphics)
 
     (doto (JFrame.)
       (.add canvas)
-      (.setSize (Dimension. width height))
+      (.setSize (Dimension. image-width image-height))
       (.show))))
 
 
