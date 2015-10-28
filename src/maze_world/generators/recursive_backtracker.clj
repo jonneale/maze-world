@@ -1,6 +1,7 @@
 (ns maze-world.generators.recursive-backtracker
   (:require [maze-world.config  :refer [width height]]
-            [maze-world.core    :as core]))
+            [maze-world.core    :as core]
+            [maze-world.drawing :as drawing]))
 
 (def initial-grid
   (into {}
@@ -25,12 +26,15 @@
 
 (defn carve-passages-from
   ([grid]
-   (into {} (carve-passages-from [0 0] grid)))
-  ([position grid]
+   (into {} (carve-passages-from [0 0] grid (constantly nil))))
+  ([grid drawing-fn]
+   (into {} (carve-passages-from [0 0] grid drawing-fn)))
+  ([position grid drawing-fn]
    (reduce (fn [current-grid direction]
+             (do (drawing-fn current-grid))
              (if (is-valid-direction? position current-grid direction)
                (-> (core/apply-direction position direction)
-                   (carve-passages-from (update-grid position current-grid direction)))
+                   (carve-passages-from (update-grid position current-grid direction) drawing-fn))
                current-grid))
            grid
            (shuffle core/directions))))
