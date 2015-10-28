@@ -114,17 +114,3 @@
                             :center c)]
     (show! (big-frame panel))
     (maze-world.generators.recursive-backtracker/carve-passages-from maze-world.generators.recursive-backtracker/initial-grid (draw-fn panel))))
-
-;; (def maze (maze-world.generators.recursive-backtracker/carve-passages-from maze-world.generators.recursive-backtracker/initial-grid))
-
-;; (defn test-run
-;;   []
-  ;; (let [f (draw-frame)
-  ;;       i (draw-image)
-  ;;       g (.createGraphics i)]
-  ;;   (.setColor g Color/green)
-  ;;   (draw-squares 500 500 generator/initial-grid g)
-  ;;   (.add f (draw-canvas i))
-  ;;   (.setVisible f true)
-  ;;   (.setSize f 500 500)
-  ;;   (.show f)))
