@@ -1,9 +1,14 @@
 (ns maze-world.drawing
-  (:import [javax.swing JFrame JLabel]
+  (:use [seesaw.core]
+        [seesaw.dev])
+  (:import [javax.swing JFrame JLabel JPanel]
            [java.awt.image BufferedImage]
            [java.awt Dimension Color])
   (:require [quil.core :as q]
-            [maze-world.config :as maze-config]))
+            [maze-world.config :as maze-config]
+            [maze-world.generators.recursive-backtracker :as generator]
+            [seesaw.graphics :as sg]
+            [seesaw.color    :as sc]))
 
 ;; original point 0,0
 ;; no north - draw line from 0 0 to 1 0
@@ -30,8 +35,7 @@
          y' (+ (* y h-scale) (* oy h-scale))
          nx (+ (* x w-scale) (* dx w-scale))
          ny (+ (* y h-scale) (* dy h-scale))]
-    (.drawLine graphics x' y' nx ny)
-    [[x' y' nx ny]]))
+    (.drawLine graphics x' y' nx ny)))
 
 (defn draw-squares
   [image-width image-height maze graphics]
@@ -56,22 +60,22 @@
                    (directions direction)
                    graphics)))))
 
-(defn draw-maze
-  [image-width image-height maze]
-  (let [image  (BufferedImage. image-width image-height BufferedImage/TYPE_INT_RGB)
-        canvas (proxy [JLabel] []
-                 (paint [g]
-                   (.drawImage g image 0 0 this)))
-        graphics (.createGraphics image)]
+(defn draw-frame
+  []
+  (JFrame.))
 
-    (.setColor graphics Color/green)
-    (draw-squares image-width image-height maze graphics)
 
-    (doto (JFrame.)
-      (.add canvas)
-      (.setSize (Dimension. image-width image-height))
-      (.show))))
+(def g (atom nil))
 
+
+(def p
+  )
+(defn big-frame
+  [content]
+  (frame
+   :title "Canvas Example"
+   :width 600 :height 600
+   :content content))
 
 ;; (doseq [coord (take max-points (iterate transform [0 1]))]
 ;;   (paint-point width height coord graphics))
@@ -85,10 +89,42 @@
 ;;   :features [:keep-on-top :resizable])
 
 
-;; (import 'javax.swing.JFrame)
-;; (def frame (JFrame. "Hello Frame"))
-;; (.setSize frame 200 200)
-;; (.setVisible frame true)
 
+
+(def main-panel
+  (border-panel :center my-canvas))
+
+(defn draw-step
+  [grid canvas graphics]
+  (draw-squares 500 500 grid graphics))
+
+(defn draw-fn
+  [panel]
+  (fn [grid]
+    (let [old-canvas (seesaw.core/select panel [:#canvas])]
+      (replace! panel old-canvas (canvas :id :canvas :background "#BBBBDD" :paint (partial draw-step grid))))))
+
+(defn empty-draw
+  [c g])
+
+(defn run
+  []
+  (let [c (canvas :id :canvas :background "#BBBBDD" :paint empty-draw)
+        panel (border-panel :hgap 5 :vgap 5 :border 5
+                            :center c)]
+    (show! (big-frame panel))
+    (maze-world.generators.recursive-backtracker/carve-passages-from maze-world.generators.recursive-backtracker/initial-grid (draw-fn panel))))
 
 ;; (def maze (maze-world.generators.recursive-backtracker/carve-passages-from maze-world.generators.recursive-backtracker/initial-grid))
+
+;; (defn test-run
+;;   []
+  ;; (let [f (draw-frame)
+  ;;       i (draw-image)
+  ;;       g (.createGraphics i)]
+  ;;   (.setColor g Color/green)
+  ;;   (draw-squares 500 500 generator/initial-grid g)
+  ;;   (.add f (draw-canvas i))
+  ;;   (.setVisible f true)
+  ;;   (.setSize f 500 500)
+  ;;   (.show f)))
